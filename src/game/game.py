@@ -5,13 +5,27 @@ from . import game_rules
 
 class Game():
     def __init__(self) -> None:
-        self.small_blind_index: int = 0
+        self._small_blind_index = 0
         self.players: list[Player] = []
         self.deck = Deck()
     
     @property
+    def small_blind_index(self) -> int:
+        return self._small_blind_index
+
+    @small_blind_index.setter
+    def small_blind_index(self, new_index: int) -> None:
+        if new_index >= len(self.players):
+            self._small_blind_index = 0
+        else:
+            self._small_blind_index = new_index
+    
+    @property
     def big_blind_index(self) -> int:
-        return self.small_blind_index + 1
+        if self.small_blind_index == len(self.players) - 1:
+            return 0
+        else:
+            return self.small_blind_index + 1
     
     def add_player(self, player: Player) -> None:
         self.players.append(player)
@@ -27,16 +41,13 @@ class Game():
         table_cards: list[Card] = []
         
         # Set blinds
-
-        big_blind = self.players[self.big_blind_index]
-        big_blind.money -= game_rules.BIG_BLIND
-        bet = game_rules.BIG_BLIND
+        self._set_blinds()
     
     def _set_blinds(self) -> None:
-        self.set_small_blind()
-        self.set_big_blind()
+        self._set_small_blind()
+        self._set_big_blind()
     
-    def set_small_blind(self) -> None:
+    def _set_small_blind(self) -> None:
         """
         Sets the small blind for the current round of the game.
 
@@ -44,7 +55,6 @@ class Game():
         and deducts the small blind amount from their money. If the player does not have
         enough money to pay the small blind, they are removed from the game.
 
-        If the small blind index is at the end of the list of players, it is reset to 0. \n
         If there is only one player remaining, the game is considered over. \n
         If the small blind cannot be set, the method is called recursively
         until a valid small blind is set or the game is over.
@@ -60,18 +70,29 @@ class Game():
             self.remove_player(small_blind)
         except OutOfMoneyError:
             self.remove_player(small_blind)
-
-        # Reset small blind index if at end of list
-        if self.small_blind_index == len(self.players) - 1:
-            self.small_blind_index = 0
         
         if len(self.players) == 1:
             self.game_over()
         elif not done:
-            self.set_small_blind()
+            self._set_small_blind()
 
-    def set_big_blind(self) -> None:
-        pass
+    def _set_big_blind(self) -> None:
+        big_blind = self.players[self.big_blind_index]
+        done = False
+        
+        # Try to remove the money
+        try:
+            big_blind.money -= game_rules.SMALL_BLIND
+            done = True
+        except InsufficientMoneyError:
+            self.remove_player(big_blind)
+        except OutOfMoneyError:
+            self.remove_player(big_blind)
+        
+        if len(self.players) == 1:
+            self.game_over()
+        elif not done:
+            self._set_small_blind()
     
     def _end_round(self, earnings: dict[Player, int]) -> None:
         for player, earning in earnings.items():

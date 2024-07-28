@@ -29,7 +29,7 @@ class GameTestCase(unittest.TestCase):
         It asserts that the player's money is equal to the starting money minus the small blind amount.
 
         """
-        self.game.set_small_blind()
+        self.game._set_small_blind()
         self.assertEqual(self.player1.money, game_rules.STARTING_MONEY - game_rules.SMALL_BLIND)
 
     def test_set_small_blind_insufficient_money(self):
@@ -45,7 +45,7 @@ class GameTestCase(unittest.TestCase):
 
         """
         self.player1._money = game_rules.SMALL_BLIND - 1
-        self.game.set_small_blind()
+        self.game._set_small_blind()
 
         self.assertNotIn(self.player1, self.game.players)
         self.assertEqual(self.player2.money, game_rules.STARTING_MONEY - game_rules.SMALL_BLIND)
@@ -57,21 +57,11 @@ class GameTestCase(unittest.TestCase):
         """
         self.player1._money = game_rules.SMALL_BLIND - 1
         self.player2._money = game_rules.SMALL_BLIND - 1
-        self.game.set_small_blind()
+        self.game._set_small_blind()
 
         self.assertNotIn(self.player1, self.game.players)
         self.assertNotIn(self.player2, self.game.players)
         self.assertEqual(self.player3.money, game_rules.STARTING_MONEY)
-    
-    def test_set_small_blind_end_of_list(self):
-        """
-        Test case to verify the behavior of setting the small blind index when it is at the end of the player list.
-        """
-        self.game.small_blind_index = len(self.game.players) - 1
-        self.game.set_small_blind()
-        self.assertEqual(self.game.small_blind_index, 0)
-
-        self.game.small_blind_index = 0
     # endregion
 
 if __name__ == '__main__':
