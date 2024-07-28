@@ -37,9 +37,22 @@ class Game():
         self.set_big_blind()
     
     def set_small_blind(self) -> None:
+        """
+        Sets the small blind for the current round of the game.
+
+        This method selects the player who will be the small blind for the current round
+        and deducts the small blind amount from their money. If the player does not have
+        enough money to pay the small blind, they are removed from the game.
+
+        If the small blind index is at the end of the list of players, it is reset to 0. \n
+        If there is only one player remaining, the game is considered over. \n
+        If the small blind cannot be set, the method is called recursively
+        until a valid small blind is set or the game is over.
+        """
         small_blind = self.players[self.small_blind_index]
         done = False
         
+        # Try to remove the money
         try:
             small_blind.money -= game_rules.SMALL_BLIND
             done = True
